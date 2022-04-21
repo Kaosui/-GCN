@@ -12,4 +12,5 @@ $aggr$表示对聚合后节点特征的操作, 可以是add, mean, max等
 ## 子类继承MessagePassing
 一般而言只需要复写:  
 message(x_j->Tensor, edge_weight=None->OptTensor, **kw):  对应$\phi_{\Theta}$  
-update()
+
+###待补充

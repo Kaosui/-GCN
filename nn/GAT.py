@@ -42,7 +42,7 @@ class GATConv(MessagePassing):
         for idx in range(len(e)):
             alpha[idx] = e[idx]/e_all[row[idx]]
         '''
-        # 注意utils中softmax的使用
+        # 注意utils中softmax的使用, 可以实现节点级的softmax, index参数是target节点数组
         alpha = softmax(e, index=row)
 
         return self.propagate(self.edge_index, x=x, norm=e)

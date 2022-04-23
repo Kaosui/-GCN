@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-import torch_geometric.nn as gnn
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import degree, add_self_loops
 

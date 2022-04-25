@@ -10,15 +10,15 @@ class GATConv(MessagePassing):
     '''
     x' = \sum a_ij*x_j
     '''
-    def __init__(self, in_channels, out_channels, add_loop=True, n_head = 1):
+    def __init__(self, in_channels, out_channels, add_loop=True, heads = 1):
         super().__init__(aggr='add', flow='source_to_target', node_dim=0)
-        self.W = nn.ModuleList([nn.Linear(in_channels, out_channels) for _ in range(n_head)])
-        self.a = nn.ModuleList([nn.Linear(2*out_channels, 1, bias=False) for _ in range(n_head)])
-        if(n_head!=1):
-            self.fc = nn.Linear(n_head*out_channels, out_channels, bias=False)
+        self.W = nn.ModuleList([nn.Linear(in_channels, out_channels) for _ in range(heads)])
+        self.a = nn.ModuleList([nn.Linear(2*out_channels, 1, bias=False) for _ in range(heads)])
+        if(heads!=1):
+            self.fc = nn.Linear(heads*out_channels, out_channels, bias=False)
         self.edge_index = None
         self.add_loop = add_loop
-        self.n_head = n_head
+        self.heads = heads
 
     def forward(self, x, edge_index):
         if self.edge_index==None:
@@ -27,7 +27,7 @@ class GATConv(MessagePassing):
         row ,col = self.edge_index
         # 计算attention系数a_ij
         multi_heads = []
-        for i in range(self.n_head):
+        for i in range(self.heads):
             x_ = self.W[i](x)
 
             e = F.leaky_relu(self.a[i](torch.cat([x_[row], x_[col]], dim=-1))).view(-1)
@@ -45,7 +45,7 @@ class GATConv(MessagePassing):
             alpha = softmax(e, index=row)
             multi_heads.append(self.propagate(self.edge_index, x=x_, norm=alpha))
 
-        return self.fc(torch.cat(multi_heads, dim=-1)) if self.n_head!=1 else multi_heads[0]
+        return torch.cat(multi_heads, dim=-1)
 
     def message(self, x_j, norm):
         return norm.view(-1,1)*x_j

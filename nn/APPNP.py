@@ -18,6 +18,8 @@ class APPNPConv(MessagePassing):
         self.W = nn.Linear(in_channels, out_channels)
         if same_weight==False:
             self.Ws = nn.ModuleList([self.W] + [nn.Linear(out_channels, out_channels) for _ in range(K-1)])
+        else:
+            self.Ws = nn.Linear(out_channels, out_channels)
         self.same_weight = same_weight
         self.k = K
         self.alpha = alpha
@@ -33,8 +35,11 @@ class APPNPConv(MessagePassing):
         H0 = self.W(x)
         H = H0
         for i in range(self.k):
-            if i>=1 and self.same_weight==False:
-                H = self.Ws[i](out)
+            if i>=1:
+                if self.same_weight==False:
+                    H = self.Ws[i](out)
+                else:
+                    H = self.Ws(out)
             out = self.propagate(edge_index=self.edge_index, x=H, norm=self.P)
             out = (1-self.alpha)*out + self.alpha*H0
         return out
